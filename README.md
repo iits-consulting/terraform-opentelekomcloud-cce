@@ -140,12 +140,6 @@ Scaling down again...
 
 <!-- BEGIN_TF_DOCS -->
 
-## Requirements
-
-| Name                                                                                          | Version  |
-| --------------------------------------------------------------------------------------------- | -------- |
-| <a name="requirement_opentelekomcloud"></a> [opentelekomcloud](#requirement_opentelekomcloud) | >=1.32.0 |
-
 ## Providers
 
 | Name                                                                                    | Version  |
