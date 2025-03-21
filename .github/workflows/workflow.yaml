@@ -1,0 +1,9 @@
+name: Automation
+
+on: 
+  pull_request:
+
+jobs:
+  automation-workflow:
+    uses: iits-consulting/terraform-opentelekomcloud-common-workflows/.github/workflows/workflow-reusable.yaml@main
+
