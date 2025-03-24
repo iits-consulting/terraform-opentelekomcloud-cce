@@ -3,11 +3,12 @@
 A module designed to support full capabilities of OTC CCE while simplifying the configuration for ease of use.
 
 Usage example
+
 ```hcl
 module "cce" {
-  source             = "registry.terraform.io/iits-consulting/project-factory/opentelekomcloud//modules/cce"
+  source             = "iits-consulting/cce/opentelekomcloud"
   name               = var.name
-  
+
   // Cluster configuration
   cluster_vpc_id            = module.vpc.vpc.id
   cluster_subnet_id         = values(module.vpc.subnets)[0].id
@@ -26,6 +27,7 @@ module "cce" {
 ```
 
 > **WARNING:** The parameter `node_config.node_storage_encryption_enabled` should be kept as `false` unless an agency for EVS is created with:
+>
 > - Agency Name = `EVSAccessKMS`
 > - Agency Type = `Account`
 > - Delegated Account = `op_svc_evs`
@@ -35,7 +37,7 @@ module "cce" {
 
 We first test the scaling up by adding a test deployment:
 
-``` yaml
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -141,11 +143,10 @@ Scaling down again...
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.4.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
 | <a name="requirement_errorcheck"></a> [errorcheck](#requirement\_errorcheck) | 3.0.3 |
 | <a name="requirement_opentelekomcloud"></a> [opentelekomcloud](#requirement\_opentelekomcloud) | >=1.32.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >=3.0.0 |
-| <a name="requirement_time"></a> [time](#requirement\_time) | >=0.10.0 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | >=4.0.0 |
 
 ## Providers
