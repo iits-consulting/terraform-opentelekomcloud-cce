@@ -141,16 +141,21 @@ Scaling down again...
 
 | Name | Version |
 |------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.4.0 |
+| <a name="requirement_errorcheck"></a> [errorcheck](#requirement\_errorcheck) | 3.0.3 |
 | <a name="requirement_opentelekomcloud"></a> [opentelekomcloud](#requirement\_opentelekomcloud) | >=1.32.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >=3.0.0 |
+| <a name="requirement_time"></a> [time](#requirement\_time) | >=0.10.0 |
+| <a name="requirement_tls"></a> [tls](#requirement\_tls) | >=4.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_errorcheck"></a> [errorcheck](#provider\_errorcheck) | n/a |
+| <a name="provider_errorcheck"></a> [errorcheck](#provider\_errorcheck) | 3.0.3 |
 | <a name="provider_opentelekomcloud"></a> [opentelekomcloud](#provider\_opentelekomcloud) | >=1.32.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | n/a |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
+| <a name="provider_random"></a> [random](#provider\_random) | >=3.0.0 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | >=4.0.0 |
 
 ## Modules
 
@@ -160,11 +165,11 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [errorcheck_is_valid.autoscaler_version_availability](https://registry.terraform.io/providers/iits-consulting/errorcheck/latest/docs/resources/is_valid) | resource |
-| [errorcheck_is_valid.cluster_authenticating_proxy_config](https://registry.terraform.io/providers/iits-consulting/errorcheck/latest/docs/resources/is_valid) | resource |
-| [errorcheck_is_valid.container_network_type](https://registry.terraform.io/providers/iits-consulting/errorcheck/latest/docs/resources/is_valid) | resource |
-| [errorcheck_is_valid.metrics_version_availability](https://registry.terraform.io/providers/iits-consulting/errorcheck/latest/docs/resources/is_valid) | resource |
-| [errorcheck_is_valid.node_availability_zones](https://registry.terraform.io/providers/iits-consulting/errorcheck/latest/docs/resources/is_valid) | resource |
+| [errorcheck_is_valid.autoscaler_version_availability](https://registry.terraform.io/providers/iits-consulting/errorcheck/3.0.3/docs/resources/is_valid) | resource |
+| [errorcheck_is_valid.cluster_authenticating_proxy_config](https://registry.terraform.io/providers/iits-consulting/errorcheck/3.0.3/docs/resources/is_valid) | resource |
+| [errorcheck_is_valid.container_network_type](https://registry.terraform.io/providers/iits-consulting/errorcheck/3.0.3/docs/resources/is_valid) | resource |
+| [errorcheck_is_valid.metrics_version_availability](https://registry.terraform.io/providers/iits-consulting/errorcheck/3.0.3/docs/resources/is_valid) | resource |
+| [errorcheck_is_valid.node_availability_zones](https://registry.terraform.io/providers/iits-consulting/errorcheck/3.0.3/docs/resources/is_valid) | resource |
 | [opentelekomcloud_cce_addon_v3.autoscaler](https://registry.terraform.io/providers/opentelekomcloud/opentelekomcloud/latest/docs/resources/cce_addon_v3) | resource |
 | [opentelekomcloud_cce_addon_v3.metrics](https://registry.terraform.io/providers/opentelekomcloud/opentelekomcloud/latest/docs/resources/cce_addon_v3) | resource |
 | [opentelekomcloud_cce_cluster_v3.cluster](https://registry.terraform.io/providers/opentelekomcloud/opentelekomcloud/latest/docs/resources/cce_cluster_v3) | resource |
