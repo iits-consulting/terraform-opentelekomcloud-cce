@@ -107,6 +107,61 @@ variable "cluster_install_icagent" {
   default     = false
 }
 
+variable "node_storage_runtime_size" {
+  type        = number
+  default     = null
+  description = "How much of the data disk (in percent) is reserved for the node runtime storage (i.e. docker images). OTC default is 90"
+  validation {
+    condition     = var.node_storage_runtime_size == null || var.node_storage_runtime_size >= 10 && var.node_storage_runtime_size <= 90
+    error_message = "node_storage_runtime_size not in range 10 <= x <= 90"
+  }
+}
+
+variable "node_storage_kubernetes_size" {
+  type        = number
+  default     = null
+  description = "How much of the data disk (in percent) is reserved for the kubernetes runtime storage (i.e. ephemeral storage). OTC default is 10"
+  validation {
+    condition     = var.node_storage_kubernetes_size == null || var.node_storage_kubernetes_size >= 10 && var.node_storage_kubernetes_size <= 90
+    error_message = "node_storage_kubernetes_size not in range 10 <= x <= 90"
+  }
+}
+
+variable "node_storage_remainder_path" {
+  type        = string
+  default     = null
+  description = "If the runtime & kubernetes sizes do not add up to 100(%), otc wants to know where/how to mount the remaining space. Note that there are forbidden paths, see otc-documentation for which paths are forbidden."
+}
+
+locals {
+  is_disk_spacing_default = var.node_storage_runtime_size == null && var.node_storage_kubernetes_size == null
+}
+
+resource "errorcheck_is_valid" "node_storage_remainder_path" {
+  name = "Check if node_storage_remainder_path is set up correctly."
+  test = {
+    assert        = local.is_disk_spacing_default || var.node_storage_runtime_size + var.node_storage_kubernetes_size == 100 ? var.node_storage_remainder_path == null : var.node_storage_remainder_path != null && try(length(var.node_storage_remainder_path) > 0, false)
+    error_message = "If the runtime & kubernetes size do not sum up to 100(%%) node_storage_remainder_path must be set, otherwise it must be unset."
+  }
+}
+
+resource "errorcheck_is_valid" "cluster_storage_size_both_set" {
+  name = "Check if cluster_storage_remainder_path and cluster_storage_kubernetes_size are set up correctly."
+  test = {
+    assert        = local.is_disk_spacing_default || (var.node_storage_runtime_size != null && var.node_storage_kubernetes_size != null)
+    error_message = "Either both runtime & kubernetes sizes need to be unset, or both need to be set."
+  }
+}
+
+resource "errorcheck_is_valid" "cluster_storage_size_combined" {
+  name = "Check if cluster_storage_remainder_path and cluster_storage_kubernetes_size are set up correctly."
+  test = {
+    assert        = local.is_disk_spacing_default || var.node_storage_runtime_size + var.node_storage_kubernetes_size <= 100
+    error_message = "The sum of node_storage_runtime_size and node_storage_kubernetes_size cannot exceed 100(%%)."
+  }
+}
+
+
 locals {
   //"Container network type: vpc-router or overlay_l2 for VirtualMachine Clusters; underlay_ipvlan for BareMetal Clusters"
   cluster_container_network_type = length(var.cluster_container_network_type) > 0 ? var.cluster_container_network_type : var.cluster_type == "VirtualMachine" ? "vpc-router" : "underlay_ipvlan"
