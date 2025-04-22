@@ -110,7 +110,7 @@ resource "opentelekomcloud_cce_node_pool_v3" "cluster_node_pool" {
     }
   }
 
-  storage = local.isDiskSpacingDefault ? null : jsonencode({
+  storage = local.is_disk_spacing_default ? null : jsonencode({
     storageSelectors = [
       {
         name        = "cceUse"
