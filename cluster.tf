@@ -63,6 +63,7 @@ resource "opentelekomcloud_cce_cluster_v3" "cluster" {
   authentication_mode      = var.cluster_authentication_mode
   annotations              = var.cluster_install_icagent ? { "cluster.install.addons.external/install" = jsonencode([{ addonTemplateName = "icagent" }]) } : null
   enable_volume_encryption = var.cluster_enable_volume_encryption
+
   dynamic "authenticating_proxy" {
     for_each = var.cluster_authentication_mode != "authenticating_proxy" ? toset([]) : toset(["authenticating_proxy"])
     content {
@@ -108,6 +109,54 @@ resource "opentelekomcloud_cce_node_pool_v3" "cluster_node_pool" {
       value  = taints.value.value
     }
   }
+
+  storage = local.isDiskSpacingDefault ? null : jsonencode({
+    storageSelectors = [
+      {
+        name        = "cceUse"
+        storageType = "evs"
+        matchLabels = {
+          count             = "1"
+          metadataCmkid     = var.node_storage_encryption_enabled ? (var.node_storage_encryption_kms_key_name == null ? opentelekomcloud_kms_key_v1.node_storage_encryption_key[0].id : data.opentelekomcloud_kms_key_v1.node_storage_encryption_existing_key[0].id) : null
+          metadataEncrypted = var.node_storage_encryption_enabled ? "1" : "0"
+          size              = tostring(var.node_storage_size)
+          volumeType        = var.node_storage_type
+        }
+      }
+    ]
+    storageGroups = [
+      {
+        name       = "vgpaas"
+        cceManaged = true
+        selectorNames = [
+          "cceUse"
+        ]
+        virtualSpaces = concat([
+          {
+            name = "runtime"
+            size = "${var.node_storage_runtime_size}%"
+            runtimeConfig = {
+              lvType = "linear"
+            }
+          },
+          {
+            name = "kubernetes"
+            size = "${var.node_storage_kubernetes_size}%"
+            lvmConfig = {
+              lvType = "linear"
+            }
+          }
+          ], var.node_storage_remainder_path == null ? [] : [
+          {
+            name = "user"
+            size = "${100 - var.node_storage_kubernetes_size - var.node_storage_runtime_size}%"
+            lvmConfig = {
+              lvType = "linear"
+            }
+        }])
+      }
+    ]
+  })
 
   root_volume {
     size       = 50
