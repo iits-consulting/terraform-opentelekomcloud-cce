@@ -112,7 +112,7 @@ variable "node_storage_runtime_size" {
   default     = null
   description = "How much of the data disk (in percent) is reserved for the node runtime storage (i.e. docker images). OTC default is 90"
   validation {
-    condition     = var.node_storage_runtime_size == null || var.node_storage_runtime_size >= 10 && var.node_storage_runtime_size <= 90
+    condition     = var.node_storage_runtime_size == null ? true : var.node_storage_runtime_size >= 10 && var.node_storage_runtime_size <= 90
     error_message = "node_storage_runtime_size not in range 10 <= x <= 90"
   }
 }
@@ -122,7 +122,7 @@ variable "node_storage_kubernetes_size" {
   default     = null
   description = "How much of the data disk (in percent) is reserved for the kubernetes runtime storage (i.e. ephemeral storage). OTC default is 10"
   validation {
-    condition     = var.node_storage_kubernetes_size == null || var.node_storage_kubernetes_size >= 10 && var.node_storage_kubernetes_size <= 90
+    condition     = var.node_storage_kubernetes_size == null ? true : var.node_storage_kubernetes_size >= 10 && var.node_storage_kubernetes_size <= 90
     error_message = "node_storage_kubernetes_size not in range 10 <= x <= 90"
   }
 }
@@ -140,7 +140,7 @@ locals {
 resource "errorcheck_is_valid" "node_storage_remainder_path" {
   name = "Check if node_storage_remainder_path is set up correctly."
   test = {
-    assert        = local.is_disk_spacing_default || var.node_storage_runtime_size + var.node_storage_kubernetes_size == 100 ? var.node_storage_remainder_path == null : var.node_storage_remainder_path != null && try(length(var.node_storage_remainder_path) > 0, false)
+    assert        = local.is_disk_spacing_default ? var.node_storage_remainder_path == null : var.node_storage_runtime_size + var.node_storage_kubernetes_size == 100 ? var.node_storage_remainder_path == null : var.node_storage_remainder_path != null && try(length(var.node_storage_remainder_path) > 0, false)
     error_message = "If the runtime & kubernetes size do not sum up to 100(%%) node_storage_remainder_path must be set, otherwise it must be unset."
   }
 }
@@ -148,7 +148,7 @@ resource "errorcheck_is_valid" "node_storage_remainder_path" {
 resource "errorcheck_is_valid" "cluster_storage_size_both_set" {
   name = "Check if cluster_storage_remainder_path and cluster_storage_kubernetes_size are set up correctly."
   test = {
-    assert        = local.is_disk_spacing_default || (var.node_storage_runtime_size != null && var.node_storage_kubernetes_size != null)
+    assert        = local.is_disk_spacing_default ? true : var.node_storage_runtime_size != null && var.node_storage_kubernetes_size != null
     error_message = "Either both runtime & kubernetes sizes need to be unset, or both need to be set."
   }
 }
@@ -156,7 +156,7 @@ resource "errorcheck_is_valid" "cluster_storage_size_both_set" {
 resource "errorcheck_is_valid" "cluster_storage_size_combined" {
   name = "Check if cluster_storage_remainder_path and cluster_storage_kubernetes_size are set up correctly."
   test = {
-    assert        = local.is_disk_spacing_default || var.node_storage_runtime_size + var.node_storage_kubernetes_size <= 100
+    assert        = local.is_disk_spacing_default ? true : var.node_storage_runtime_size + var.node_storage_kubernetes_size <= 100
     error_message = "The sum of node_storage_runtime_size and node_storage_kubernetes_size cannot exceed 100(%%)."
   }
 }
