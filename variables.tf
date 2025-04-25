@@ -213,8 +213,8 @@ variable "node_flavor" {
 
 variable "node_os" {
   type        = string
-  description = "Operating system of worker nodes: EulerOS 2.9 or HCE 2.0"
-  default     = "HCE 2.0"
+  description = "Operating system of worker nodes: EulerOS 2.9 or HCE OS 2.0"
+  default     = "HCE OS 2.0"
 }
 
 variable "node_container_runtime" {
