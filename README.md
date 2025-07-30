@@ -220,7 +220,7 @@ No modules.
 | <a name="input_metrics_server_version"></a> [metrics\_server\_version](#input\_metrics\_server\_version) | Version of the Metrics Server Addon Template | `string` | `"latest"` | no |
 | <a name="input_node_container_runtime"></a> [node\_container\_runtime](#input\_node\_container\_runtime) | The container runtime to use. Must be set to either containerd or docker. | `string` | `"containerd"` | no |
 | <a name="input_node_k8s_tags"></a> [node\_k8s\_tags](#input\_node\_k8s\_tags) | (Optional, Map) Tags of a Kubernetes node, key/value pair format. | `map(string)` | `{}` | no |
-| <a name="input_node_os"></a> [node\_os](#input\_node\_os) | Operating system of worker nodes: EulerOS 2.9 or HCE 2.0 | `string` | `"HCE 2.0"` | no |
+| <a name="input_node_os"></a> [node\_os](#input\_node\_os) | Operating system of worker nodes: EulerOS 2.9 or HCE OS 2.0 | `string` | `"HCE OS 2.0"` | no |
 | <a name="input_node_postinstall"></a> [node\_postinstall](#input\_node\_postinstall) | Post install script for the cluster ECS node pool. | `string` | `""` | no |
 | <a name="input_node_storage_encryption_enabled"></a> [node\_storage\_encryption\_enabled](#input\_node\_storage\_encryption\_enabled) | Enable OTC KMS volume encryption for the node pool volumes. | `bool` | `true` | no |
 | <a name="input_node_storage_encryption_kms_key_name"></a> [node\_storage\_encryption\_kms\_key\_name](#input\_node\_storage\_encryption\_kms\_key\_name) | If KMS volume encryption is enabled, specify a name of an existing kms key. Setting this disables the creation of a new kms key. | `string` | `null` | no |
