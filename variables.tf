@@ -1,5 +1,3 @@
-data "opentelekomcloud_identity_project_v3" "current" {}
-
 variable "name" {
   type        = string
   description = "CCE cluster name"
@@ -11,19 +9,86 @@ variable "tags" {
   default     = {}
 }
 
+variable "cluster_annotations" {
+  type        = map(string)
+  description = "CCE cluster annotations, key/value pair format. This field is not stored in the database and is used only to specify the add-ons to be installed in the cluster."
+  default     = {}
+}
+
+variable "cluster_timezone" {
+  type        = string
+  description = "CCE cluster timezone in string format"
+  default     = null
+}
+
+variable "cluster_ipv6_enable" {
+  type        = bool
+  description = "Specifies whether the cluster supports IPv6 addresses. This field is supported in clusters of v1.25 and later versions."
+  default     = null
+}
+
+variable "cluster_extend_param" {
+  type        = map(string)
+  description = "CCE cluster extended parameters, key/value pair format. For details, please see https://docs.otc.t-systems.com/cloud-container-engine/api-ref/apis/cluster_management/creating_a_cluster.html#cce-02-0236-table17575013586."
+  default     = null
+}
+
 variable "cluster_vpc_id" {
   type        = string
-  description = "VPC id where the cluster will be created in"
+  description = "The ID of the VPC for the cluster nodes."
 }
+
 variable "cluster_subnet_id" {
   type        = string
-  description = "Subnet network id where the cluster will be created in"
+  description = "The UUID of the subnet for the cluster nodes."
+}
+
+variable "cluster_eni_subnet_id" {
+  type        = string
+  description = "Specifies the UUID of ENI subnet. Specified only when creating a CCE Turbo cluster (when cluster_container_network_type = \"eni\"). If unspecified, module will use the same subnet as cluster_subnet_id."
+  default     = ""
+}
+
+# var.cluster_eni_subnet_cidr is disabled here since setting it to any CIDR other than the full range of the eni_subnet results in:
+# {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","code":400,"errorCode":"CCE.01400001","errorMessage":"Invalid request.","error_code":"CCE_CM.0004","error_msg":"Request is invalid","message":"Eni subnetId and subnetCidr not matched","reason":"BadRequest"}
+# variable "cluster_eni_subnet_cidr" {
+#   type        = string
+#   description = "Specifies the ENI network segment. Currently this parameter cannot be set to any CIDR except the entire ENI subnet range and is therefore disabled."
+#   default     = ""
+# }
+#
+# resource "errorcheck_is_valid" "cluster_eni_subnet_id" {
+#   name = "Check if cluster_eni_subnet_id is set up correctly when cluster_eni_subnet_cidr is specified."
+#   test = {
+#     assert        = length(var.cluster_eni_subnet_cidr) > 0 ? length(var.cluster_eni_subnet_id) > 0 : true
+#     error_message = "If cluster_eni_subnet_cidr is specified, the cluster_eni_subnet_id must also be set."
+#   }
+# }
+
+resource "errorcheck_is_valid" "cluster_container_network_type" {
+  name = "Check if cluster_container_network_type is set up correctly when cluster_eni_subnet_id is specified."
+  test = {
+    assert        = length(var.cluster_eni_subnet_id) > 0 ? local.cluster_container_network_type == "eni" : true
+    error_message = "If cluster_eni_subnet_id is specified, cluster_container_network_type must must be \"eni\" (CCE Turbo Cluster)."
+  }
+}
+
+variable "cluster_security_group_id" {
+  type        = string
+  description = "Default worker node security group ID of the cluster. If specified, the cluster will be bound to the target security group. Otherwise, the system will automatically create a default worker node security group for you."
+  default     = null
+}
+
+variable "cluster_highway_subnet_id" {
+  type        = string
+  description = "The ID of the high speed network for bare metal nodes."
+  default     = null
 }
 
 variable "cluster_version" {
   type        = string
   description = "CCE cluster version."
-  default     = "v1.30"
+  default     = "v1.31"
 }
 
 variable "cluster_size" {
@@ -40,35 +105,18 @@ variable "cluster_type" {
   type        = string
   description = "Cluster type: VirtualMachine or BareMetal"
   default     = "VirtualMachine"
-
-  validation {
-    condition     = contains(["VirtualMachine", "BareMetal"], var.cluster_type == null ? "VirtualMachine" : var.cluster_type)
-    error_message = "Allowed values for cluster_type are \"VirtualMachine\" and \"BareMetal\"."
-  }
 }
 
 variable "cluster_container_network_type" {
   type        = string
-  description = "Container network type: vpc-router or overlay_l2 for VirtualMachine Clusters; underlay_ipvlan for BareMetal Clusters"
+  description = "Container network type: vpc-router, overlay_l2 or eni for VirtualMachine Clusters; underlay_ipvlan for BareMetal Clusters"
   default     = ""
 }
 
-resource "errorcheck_is_valid" "container_network_type" {
-  name = "Check if container_network_type is set up correctly."
-  test = {
-    assert = (
-      length(var.cluster_container_network_type) == 0 ||
-      (try(contains(["vpc-router", "overlay_l2"], var.cluster_container_network_type), false) && (var.cluster_type == "VirtualMachine" || var.cluster_type == null)) ||
-      (try(contains(["underlay_ipvlan"], var.cluster_container_network_type), false) && var.cluster_type == "BareMetal")
-    )
-    error_message = "Allowed values for container_network_type are \"vpc-router\" and \"overlay_l2\" for VirtualMachine Clusters; and \"underlay_ipvlan\" for BareMetal Clusters."
-  }
-}
-
 variable "cluster_enable_volume_encryption" {
+  type        = bool
   description = "System and data disks encryption of master nodes. Changing this parameter will create a new cluster resource."
   default     = true
-  type        = bool
 }
 
 variable "cluster_container_cidr" {
@@ -80,13 +128,19 @@ variable "cluster_container_cidr" {
 variable "cluster_service_cidr" {
   type        = string
   description = "Kubernetes service network CIDR range"
-  default     = "10.247.0.0/16"
+  default     = "172.17.0.0/16"
 }
 
 variable "cluster_public_access" {
   type        = bool
-  description = "Bind a public IP to the CLuster to make it public available"
+  description = "Bind a public IP to the CLuster to make it publicly reachable over the internet."
   default     = true
+}
+
+variable "cluster_api_access_trustlist" {
+  type        = list(string)
+  description = "Specifies the trustlist of network CIDRs that are allowed to access cluster APIs."
+  default     = null
 }
 
 variable "cluster_high_availability" {
@@ -97,7 +151,7 @@ variable "cluster_high_availability" {
 
 variable "cluster_enable_scaling" {
   type        = bool
-  description = "Enable autoscaling of the cluster"
+  description = "Enable autoscaling of the cluster node pools"
   default     = false
 }
 
@@ -161,7 +215,6 @@ resource "errorcheck_is_valid" "cluster_storage_size_combined" {
   }
 }
 
-
 locals {
   //"Container network type: vpc-router or overlay_l2 for VirtualMachine Clusters; underlay_ipvlan for BareMetal Clusters"
   cluster_container_network_type = length(var.cluster_container_network_type) > 0 ? var.cluster_container_network_type : var.cluster_type == "VirtualMachine" ? "vpc-router" : "underlay_ipvlan"
@@ -170,35 +223,6 @@ locals {
 variable "node_availability_zones" {
   type        = set(string)
   description = "Availability zones for the node pools. Providing multiple availability zones creates one node pool in each zone."
-}
-
-locals {
-  valid_availability_zones = {
-    eu-de = toset([
-      "eu-de-01",
-      "eu-de-02",
-      "eu-de-03",
-    ])
-    eu-nl = toset([
-      "eu-nl-01",
-      "eu-nl-02",
-      "eu-nl-03",
-    ])
-    eu-ch2 = toset([
-      "eu-ch2a",
-      "eu-ch2b",
-    ])
-  }
-
-  region = data.opentelekomcloud_identity_project_v3.current.region
-}
-
-resource "errorcheck_is_valid" "node_availability_zones" {
-  name = "Check if node_availability_zones are set up correctly."
-  test = {
-    assert        = length(setsubtract(var.node_availability_zones, local.valid_availability_zones[local.region])) == 0
-    error_message = "Please check your availability zones. For ${local.region} the valid az's are ${jsonencode(local.valid_availability_zones[local.region])}"
-  }
 }
 
 variable "node_count" {
@@ -326,14 +350,80 @@ variable "cluster_authenticating_proxy_private_key" {
   default     = null
 }
 
-resource "errorcheck_is_valid" "cluster_authenticating_proxy_config" {
-  name = "Check if cluster_authenticating_proxy is set up correctly."
-  test = {
-    assert = (
-      var.cluster_authentication_mode == "authenticating_proxy" ||
-      length(compact([var.cluster_authenticating_proxy_ca, var.cluster_authenticating_proxy_cert, var.cluster_authenticating_proxy_private_key])) < 3
-    )
+variable "cluster_no_addons" {
+  type        = bool
+  description = "Remove addons installed by the default after the cluster creation."
+  default     = null
+}
 
-    error_message = "Variables \"cluster_authenticating_proxy_ca\", \"cluster_authenticating_proxy_cert\" and \"cluster_authenticating_proxy_private_key\" when \"cluster_authentication_mode\" is set to \"authenticating_proxy\"!"
-  }
+variable "cluster_ignore_addons" {
+  type        = bool
+  description = "Skip all cluster addons operations."
+  default     = null
+}
+
+variable "cluster_ignore_certificate_users_data" {
+  type        = bool
+  description = "Skip sensitive user data. (will disable some module outputs)"
+  default     = null
+}
+
+variable "cluster_ignore_certificate_clusters_data" {
+  type        = bool
+  description = "Skip sensitive cluster data. (will disable some module outputs)"
+  default     = null
+}
+
+variable "cluster_kube_proxy_mode" {
+  type        = string
+  description = "Service forwarding mode: iptables or ipvs "
+  default     = null
+}
+
+variable "cluster_delete_evs" {
+  type        = bool
+  description = "Specifies whether to delete associated EVS disks when deleting the CCE cluster."
+  default     = null
+}
+
+variable "cluster_delete_obs" {
+  type        = bool
+  description = "Specifies whether to delete associated OBS buckets when deleting the CCE cluster. "
+  default     = null
+}
+
+variable "cluster_delete_sfs" {
+  type        = bool
+  description = "Specifies whether to delete associated SFS file systems when deleting the CCE cluster."
+  default     = null
+}
+
+variable "cluster_delete_efs" {
+  type        = bool
+  description = "Specifies whether to unbind associated SFS Turbo file systems when deleting the CCE cluster."
+  default     = null
+}
+
+variable "cluster_delete_eni" {
+  type        = bool
+  description = "Specifies whether to delete ENI ports when deleting the CCE cluster."
+  default     = null
+}
+
+variable "cluster_delete_net" {
+  type        = bool
+  description = "Specifies whether to delete cluster Service/ingress-related resources, such as ELB when deleting the CCE cluster."
+  default     = null
+}
+
+variable "cluster_delete_all_storage" {
+  type        = bool
+  description = "Specifies whether to delete all associated storage resources when deleting the CCE cluster."
+  default     = null
+}
+
+variable "cluster_delete_all_network" {
+  type        = bool
+  description = "Specifies whether to delete all associated network resources when deleting the CCE cluster."
+  default     = null
 }
