@@ -18,23 +18,23 @@ data "opentelekomcloud_vpc_subnet_v1" "eni_subnet" {
 }
 
 resource "opentelekomcloud_cce_cluster_v3" "cluster" {
-  name                             = var.name
-  annotations                      = merge(var.cluster_annotations, var.cluster_install_icagent ? { "cluster.install.addons.external/install" = jsonencode([{ addonTemplateName = "icagent" }]) } : {})
-  timezone                         = var.cluster_timezone
-  flavor_id                        = "cce.${var.cluster_type == "BareMetal" ? "t" : "s"}${var.cluster_high_availability ? 2 : 1}.${lower(var.cluster_size)}"
-  cluster_version                  = var.cluster_version
-  cluster_type                     = var.cluster_type
-  description                      = "Kubernetes Cluster ${var.name}."
-  ipv6_enable                      = var.cluster_ipv6_enable
-  extend_param                     = var.cluster_extend_param
-  enable_volume_encryption         = var.cluster_enable_volume_encryption
-  vpc_id                           = var.cluster_vpc_id
-  subnet_id                        = var.cluster_subnet_id
-  security_group_id                = var.cluster_security_group_id
-  highway_subnet_id                = var.cluster_highway_subnet_id
-  container_network_type           = local.cluster_container_network_type
-  container_network_cidr           = local.cluster_container_network_type == "eni" ? null : var.cluster_container_cidr
-  eni_subnet_id                    = local.cluster_container_network_type == "eni" ? data.opentelekomcloud_vpc_subnet_v1.eni_subnet[0].subnet_id : null
+  name                     = var.name
+  annotations              = merge(var.cluster_annotations, var.cluster_install_icagent ? { "cluster.install.addons.external/install" = jsonencode([{ addonTemplateName = "icagent" }]) } : {})
+  timezone                 = var.cluster_timezone
+  flavor_id                = "cce.${var.cluster_type == "BareMetal" ? "t" : "s"}${var.cluster_high_availability ? 2 : 1}.${lower(var.cluster_size)}"
+  cluster_version          = var.cluster_version
+  cluster_type             = var.cluster_type
+  description              = "Kubernetes Cluster ${var.name}."
+  ipv6_enable              = var.cluster_ipv6_enable
+  extend_param             = var.cluster_extend_param
+  enable_volume_encryption = var.cluster_enable_volume_encryption
+  vpc_id                   = var.cluster_vpc_id
+  subnet_id                = var.cluster_subnet_id
+  security_group_id        = var.cluster_security_group_id
+  highway_subnet_id        = var.cluster_highway_subnet_id
+  container_network_type   = local.cluster_container_network_type
+  container_network_cidr   = local.cluster_container_network_type == "eni" ? null : var.cluster_container_cidr
+  eni_subnet_id            = local.cluster_container_network_type == "eni" ? data.opentelekomcloud_vpc_subnet_v1.eni_subnet[0].subnet_id : null
   # var.cluster_eni_subnet_cidr is disabled here since setting it to any CIDR other than the full range of the eni_subnet results in:
   # {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","code":400,"errorCode":"CCE.01400001","errorMessage":"Invalid request.","error_code":"CCE_CM.0004","error_msg":"Request is invalid","message":"Eni subnetId and subnetCidr not matched","reason":"BadRequest"}
   # eni_subnet_cidr = local.cluster_container_network_type == "eni" ? length(var.cluster_eni_subnet_cidr) > 0 ? var.cluster_eni_subnet_cidr : data.opentelekomcloud_vpc_subnet_v1.eni_subnet[0].cidr : null

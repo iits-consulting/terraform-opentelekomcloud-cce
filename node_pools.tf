@@ -97,14 +97,14 @@ resource "opentelekomcloud_cce_node_pool_v3" "cluster_node_pool" {
               lvType = "linear"
             }
           }
-        ], var.node_storage_remainder_path == null ? [] : [
+          ], var.node_storage_remainder_path == null ? [] : [
           {
             name = "user"
             size = "${100 - var.node_storage_kubernetes_size - var.node_storage_runtime_size}%"
             lvmConfig = {
               lvType = "linear"
             }
-          }])
+        }])
       }
     ]
   })

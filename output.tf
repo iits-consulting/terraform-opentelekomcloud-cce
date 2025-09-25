@@ -60,19 +60,19 @@ output "cluster_name" {
 }
 
 output "kubeconfig" {
-  sensitive = true
+  sensitive   = true
   value       = local.kubectl_config_yaml
   description = "Cluster credentials for the created CCE cluster in kubeconfig YAML format. (Some or all values will be an empty string if cluster_ignore_certificate_clusters_data or cluster_ignore_certificate_users_data is true)"
 }
 
 output "kubeconfig_yaml" {
-  sensitive = true
+  sensitive   = true
   value       = local.kubectl_config_yaml
   description = "Cluster credentials for the created CCE cluster in kubeconfig YAML format. (Some or all values will be an empty string if cluster_ignore_certificate_clusters_data or cluster_ignore_certificate_users_data is true)"
 }
 
 output "kubeconfig_json" {
-  sensitive = true
+  sensitive   = true
   value       = local.kubectl_config_json
   description = "Cluster credentials for the created CCE cluster in kubeconfig JSON format. (Some or all values will be an empty string if cluster_ignore_certificate_clusters_data or cluster_ignore_certificate_users_data is true)"
 }
