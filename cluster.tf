@@ -1,17 +1,3 @@
-resource "tls_private_key" "cluster_keypair" {
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P256"
-}
-
-resource "random_id" "cluster_keypair_id" {
-  byte_length = 4
-}
-
-resource "opentelekomcloud_compute_keypair_v2" "cluster_keypair" {
-  name       = "${var.name}-cluster-keypair-${random_id.cluster_keypair_id.hex}"
-  public_key = tls_private_key.cluster_keypair.public_key_openssh
-}
-
 resource "opentelekomcloud_vpc_eip_v1" "cce_eip" {
   count = var.cluster_public_access ? 1 : 0
   bandwidth {
@@ -26,43 +12,51 @@ resource "opentelekomcloud_vpc_eip_v1" "cce_eip" {
   }
 }
 
-resource "random_id" "id" {
-  count       = var.node_storage_encryption_enabled && var.node_storage_encryption_kms_key_name == null ? 1 : 0
-  byte_length = 4
-}
-
-resource "opentelekomcloud_kms_key_v1" "node_storage_encryption_key" {
-  count           = var.node_storage_encryption_enabled && var.node_storage_encryption_kms_key_name == null ? 1 : 0
-  key_alias       = "${var.name}-node-pool-${random_id.id[0].hex}"
-  key_description = "${var.name} CCE Node Pool volume encryption key"
-  pending_days    = 7
-  is_enabled      = "true"
-}
-
-data "opentelekomcloud_kms_key_v1" "node_storage_encryption_existing_key" {
-  count     = var.node_storage_encryption_enabled && var.node_storage_encryption_kms_key_name != null ? 1 : 0
-  key_alias = var.node_storage_encryption_kms_key_name
-}
-
-locals {
-  flavor_id = "cce.${var.cluster_type == "BareMetal" ? "t" : "s"}${var.cluster_high_availability ? 2 : 1}.${lower(var.cluster_size)}"
+data "opentelekomcloud_vpc_subnet_v1" "eni_subnet" {
+  count = local.cluster_container_network_type == "eni" ? 1 : 0
+  id    = length(var.cluster_eni_subnet_id) > 0 ? var.cluster_eni_subnet_id : var.cluster_subnet_id
 }
 
 resource "opentelekomcloud_cce_cluster_v3" "cluster" {
   name                     = var.name
+  annotations              = merge(var.cluster_annotations, var.cluster_install_icagent ? { "cluster.install.addons.external/install" = jsonencode([{ addonTemplateName = "icagent" }]) } : {})
+  timezone                 = var.cluster_timezone
+  flavor_id                = "cce.${var.cluster_type == "BareMetal" ? "t" : "s"}${var.cluster_high_availability ? 2 : 1}.${lower(var.cluster_size)}"
+  cluster_version          = var.cluster_version
   cluster_type             = var.cluster_type
-  flavor_id                = local.flavor_id
+  description              = "Kubernetes Cluster ${var.name}."
+  ipv6_enable              = var.cluster_ipv6_enable
+  extend_param             = var.cluster_extend_param
+  enable_volume_encryption = var.cluster_enable_volume_encryption
   vpc_id                   = var.cluster_vpc_id
   subnet_id                = var.cluster_subnet_id
+  security_group_id        = var.cluster_security_group_id
+  highway_subnet_id        = var.cluster_highway_subnet_id
   container_network_type   = local.cluster_container_network_type
-  container_network_cidr   = var.cluster_container_cidr
-  kubernetes_svc_ip_range  = var.cluster_service_cidr
-  description              = "Kubernetes Cluster ${var.name}."
-  eip                      = var.cluster_public_access ? opentelekomcloud_vpc_eip_v1.cce_eip[0].publicip[0].ip_address : null
-  cluster_version          = var.cluster_version
-  authentication_mode      = var.cluster_authentication_mode
-  annotations              = var.cluster_install_icagent ? { "cluster.install.addons.external/install" = jsonencode([{ addonTemplateName = "icagent" }]) } : null
-  enable_volume_encryption = var.cluster_enable_volume_encryption
+  container_network_cidr   = local.cluster_container_network_type == "eni" ? null : var.cluster_container_cidr
+  eni_subnet_id            = local.cluster_container_network_type == "eni" ? data.opentelekomcloud_vpc_subnet_v1.eni_subnet[0].subnet_id : null
+  # var.cluster_eni_subnet_cidr is disabled here since setting it to any CIDR other than the full range of the eni_subnet results in:
+  # {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","code":400,"errorCode":"CCE.01400001","errorMessage":"Invalid request.","error_code":"CCE_CM.0004","error_msg":"Request is invalid","message":"Eni subnetId and subnetCidr not matched","reason":"BadRequest"}
+  # eni_subnet_cidr = local.cluster_container_network_type == "eni" ? length(var.cluster_eni_subnet_cidr) > 0 ? var.cluster_eni_subnet_cidr : data.opentelekomcloud_vpc_subnet_v1.eni_subnet[0].cidr : null
+  eni_subnet_cidr                  = local.cluster_container_network_type == "eni" ? data.opentelekomcloud_vpc_subnet_v1.eni_subnet[0].cidr : null
+  api_access_trustlist             = var.cluster_api_access_trustlist
+  kubernetes_svc_ip_range          = var.cluster_service_cidr
+  eip                              = var.cluster_public_access ? opentelekomcloud_vpc_eip_v1.cce_eip[0].publicip[0].ip_address : null
+  multi_az                         = var.cluster_high_availability ? var.cluster_high_availability : null
+  authentication_mode              = var.cluster_authentication_mode
+  no_addons                        = var.cluster_no_addons
+  ignore_addons                    = var.cluster_ignore_addons
+  ignore_certificate_users_data    = var.cluster_ignore_certificate_users_data
+  ignore_certificate_clusters_data = var.cluster_ignore_certificate_clusters_data
+  kube_proxy_mode                  = var.cluster_kube_proxy_mode
+  delete_evs                       = var.cluster_delete_evs
+  delete_obs                       = var.cluster_delete_obs
+  delete_sfs                       = var.cluster_delete_sfs
+  delete_efs                       = var.cluster_delete_efs
+  delete_eni                       = var.cluster_delete_eni
+  delete_net                       = var.cluster_delete_net
+  delete_all_storage               = var.cluster_delete_all_storage
+  delete_all_network               = var.cluster_delete_all_network
 
   dynamic "authenticating_proxy" {
     for_each = var.cluster_authentication_mode != "authenticating_proxy" ? toset([]) : toset(["authenticating_proxy"])
@@ -77,103 +71,5 @@ resource "opentelekomcloud_cce_cluster_v3" "cluster" {
     create = "60m"
     delete = "60m"
   }
-}
-
-resource "opentelekomcloud_cce_node_pool_v3" "cluster_node_pool" {
-  for_each           = var.node_availability_zones
-  cluster_id         = opentelekomcloud_cce_cluster_v3.cluster.id
-  name               = "${var.name}-nodes-${each.value}"
-  flavor             = var.node_flavor
-  initial_node_count = var.node_count
-  availability_zone  = each.value
-  key_pair           = opentelekomcloud_compute_keypair_v2.cluster_keypair.name
-  os                 = var.node_os
-  runtime            = var.node_container_runtime
-
-  scale_enable             = var.cluster_enable_scaling
-  min_node_count           = local.autoscaler_node_min
-  max_node_count           = var.autoscaler_node_max
-  scale_down_cooldown_time = 15
-  priority                 = 1
-  user_tags                = var.tags
-  docker_base_size         = 20
-  postinstall              = var.node_postinstall
-
-  k8s_tags = var.node_k8s_tags
-
-  dynamic "taints" {
-    for_each = var.node_taints
-    content {
-      effect = taints.value.effect
-      key    = taints.value.key
-      value  = taints.value.value
-    }
-  }
-
-  storage = local.is_disk_spacing_default ? null : jsonencode({
-    storageSelectors = [
-      {
-        name        = "cceUse"
-        storageType = "evs"
-        matchLabels = {
-          count             = "1"
-          metadataCmkid     = var.node_storage_encryption_enabled ? (var.node_storage_encryption_kms_key_name == null ? opentelekomcloud_kms_key_v1.node_storage_encryption_key[0].id : data.opentelekomcloud_kms_key_v1.node_storage_encryption_existing_key[0].id) : null
-          metadataEncrypted = var.node_storage_encryption_enabled ? "1" : "0"
-          size              = tostring(var.node_storage_size)
-          volumeType        = var.node_storage_type
-        }
-      }
-    ]
-    storageGroups = [
-      {
-        name       = "vgpaas"
-        cceManaged = true
-        selectorNames = [
-          "cceUse"
-        ]
-        virtualSpaces = concat([
-          {
-            name = "runtime"
-            size = "${var.node_storage_runtime_size}%"
-            runtimeConfig = {
-              lvType = "linear"
-            }
-          },
-          {
-            name = "kubernetes"
-            size = "${var.node_storage_kubernetes_size}%"
-            lvmConfig = {
-              lvType = "linear"
-            }
-          }
-          ], var.node_storage_remainder_path == null ? [] : [
-          {
-            name = "user"
-            size = "${100 - var.node_storage_kubernetes_size - var.node_storage_runtime_size}%"
-            lvmConfig = {
-              lvType = "linear"
-            }
-        }])
-      }
-    ]
-  })
-
-  root_volume {
-    size       = 50
-    volumetype = "SSD"
-    kms_id     = var.node_storage_encryption_enabled ? (var.node_storage_encryption_kms_key_name == null ? opentelekomcloud_kms_key_v1.node_storage_encryption_key[0].id : data.opentelekomcloud_kms_key_v1.node_storage_encryption_existing_key[0].id) : null
-  }
-
-  data_volumes {
-    size       = var.node_storage_size
-    volumetype = var.node_storage_type
-    kms_id     = var.node_storage_encryption_enabled ? (var.node_storage_encryption_kms_key_name == null ? opentelekomcloud_kms_key_v1.node_storage_encryption_key[0].id : data.opentelekomcloud_kms_key_v1.node_storage_encryption_existing_key[0].id) : null
-  }
-
-  lifecycle {
-    ignore_changes = [
-      initial_node_count,
-    ]
-    create_before_destroy = true
-  }
+  depends_on = [errorcheck_is_valid.cluster_container_network_type]
 }

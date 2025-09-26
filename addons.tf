@@ -1,3 +1,5 @@
+data "opentelekomcloud_identity_project_v3" "current" {}
+
 data "opentelekomcloud_cce_addon_templates_v3" "autoscaler" {
   cluster_version = var.cluster_version
   cluster_type    = var.cluster_type
@@ -28,7 +30,7 @@ locals {
 }
 
 locals {
-  region_endpoint = replace(local.region, "eu-ch2", "eu-ch2.sc")
+  region_endpoint = replace(data.opentelekomcloud_identity_project_v3.current.region, "eu-ch2", "eu-ch2.sc")
 }
 
 resource "opentelekomcloud_cce_addon_v3" "autoscaler" {

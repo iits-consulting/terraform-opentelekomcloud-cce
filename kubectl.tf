@@ -1,9 +1,9 @@
 locals {
-  client_key_data                    = opentelekomcloud_cce_cluster_v3.cluster.certificate_users[0].client_key_data
-  client_certificate_data            = opentelekomcloud_cce_cluster_v3.cluster.certificate_users[0].client_certificate_data
+  client_key_data                    = try(opentelekomcloud_cce_cluster_v3.cluster.certificate_users[0].client_key_data, "")
+  client_certificate_data            = try(opentelekomcloud_cce_cluster_v3.cluster.certificate_users[0].client_certificate_data, "")
   kubectl_external_server            = try(opentelekomcloud_cce_cluster_v3.cluster.certificate_clusters[1].server, "")
-  kubectl_internal_server            = opentelekomcloud_cce_cluster_v3.cluster.certificate_clusters[0].server
-  cluster_certificate_authority_data = opentelekomcloud_cce_cluster_v3.cluster.certificate_clusters[0].certificate_authority_data
+  kubectl_internal_server            = try(opentelekomcloud_cce_cluster_v3.cluster.certificate_clusters[0].server, "")
+  cluster_certificate_authority_data = try(opentelekomcloud_cce_cluster_v3.cluster.certificate_clusters[0].certificate_authority_data, "")
 
   kubectl_config_raw_internal = {
     clusters = [
