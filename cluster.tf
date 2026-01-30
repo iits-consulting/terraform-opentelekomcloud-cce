@@ -67,6 +67,20 @@ resource "opentelekomcloud_cce_cluster_v3" "cluster" {
     }
   }
 
+  dynamic "component_configurations" {
+    for_each = var.cluster_component_configurations
+    content {
+      name = component_configurations.key
+      dynamic "configurations" {
+        for_each = component_configurations.value
+        content {
+          name  = configurations.key
+          value = configurations.value
+        }
+      }
+    }
+  }
+
   timeouts {
     create = "60m"
     delete = "60m"
