@@ -5,7 +5,7 @@ terraform {
   required_providers {
     opentelekomcloud = {
       source  = "opentelekomcloud/opentelekomcloud"
-      version = "~> 1.36, >=1.36.48"
+      version = "~> 1.36, >=1.36.52"
     }
     errorcheck = {
       source  = "iits-consulting/errorcheck"

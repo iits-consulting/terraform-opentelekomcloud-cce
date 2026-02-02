@@ -161,6 +161,31 @@ variable "cluster_install_icagent" {
   default     = false
 }
 
+variable "cluster_component_configurations" {
+  type        = map(map(string))
+  description = "Specifies the kubernetes component configurations. For details, see https://docs.otc.t-systems.com/cloud-container-engine/umn/clusters/managing_clusters/modifying_cluster_configurations.html#cce-10-0213"
+  default     = {}
+}
+
+# # This is the actual provider / API Spec. We opted to use the above solution instead as it was equivalent but more concise, making the module easier to configure and maintain
+# variable "cluster_component_configurations" {
+#   type = list(object({
+#     name = string
+#     configurations = optional(list(object({
+#       name = string
+#       value = string
+#     })),[])
+#   }))
+#   description = "Specifies the kubernetes component configurations. For details, see https://docs.otc.t-systems.com/cloud-container-engine/umn/clusters/managing_clusters/modifying_cluster_configurations.html#cce-10-0213"
+#   default     = []
+# }
+#
+# locals {
+#   cluster_component_configurations = { for configuration in var.cluster_component_configurations:
+#     configuration.name => { for conf in configuration.configurations: conf.name => conf.value }
+#   }
+# }
+
 variable "node_storage_runtime_size" {
   type        = number
   default     = null

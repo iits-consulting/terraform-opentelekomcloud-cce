@@ -145,7 +145,7 @@ Scaling down again...
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
 | <a name="requirement_errorcheck"></a> [errorcheck](#requirement\_errorcheck) | 3.0.3 |
-| <a name="requirement_opentelekomcloud"></a> [opentelekomcloud](#requirement\_opentelekomcloud) | ~> 1.36, >=1.36.48 |
+| <a name="requirement_opentelekomcloud"></a> [opentelekomcloud](#requirement\_opentelekomcloud) | ~> 1.36, >=1.36.52 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0 |
 
@@ -154,7 +154,7 @@ Scaling down again...
 | Name | Version |
 |------|---------|
 | <a name="provider_errorcheck"></a> [errorcheck](#provider\_errorcheck) | 3.0.3 |
-| <a name="provider_opentelekomcloud"></a> [opentelekomcloud](#provider\_opentelekomcloud) | ~> 1.36, >=1.36.48 |
+| <a name="provider_opentelekomcloud"></a> [opentelekomcloud](#provider\_opentelekomcloud) | ~> 1.36, >=1.36.52 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 4.0 |
 
@@ -207,6 +207,7 @@ No modules.
 | <a name="input_cluster_authenticating_proxy_cert"></a> [cluster\_authenticating\_proxy\_cert](#input\_cluster\_authenticating\_proxy\_cert) | Client certificate issued by the X509 CA certificate configured in authenticating\_proxy mode. | `string` | `null` | no |
 | <a name="input_cluster_authenticating_proxy_private_key"></a> [cluster\_authenticating\_proxy\_private\_key](#input\_cluster\_authenticating\_proxy\_private\_key) | Private key of the client certificate issued by the X509 CA certificate configured in authenticating\_proxy mode. | `string` | `null` | no |
 | <a name="input_cluster_authentication_mode"></a> [cluster\_authentication\_mode](#input\_cluster\_authentication\_mode) | Authentication mode of the Cluster. Either rbac or authenticating\_proxy | `string` | `"rbac"` | no |
+| <a name="input_cluster_component_configurations"></a> [cluster\_component\_configurations](#input\_cluster\_component\_configurations) | Specifies the kubernetes component configurations. For details, see https://docs.otc.t-systems.com/cloud-container-engine/umn/clusters/managing_clusters/modifying_cluster_configurations.html#cce-10-0213 | `map(map(string))` | `{}` | no |
 | <a name="input_cluster_container_cidr"></a> [cluster\_container\_cidr](#input\_cluster\_container\_cidr) | Kubernetes pod network CIDR range | `string` | `"172.16.0.0/16"` | no |
 | <a name="input_cluster_container_network_type"></a> [cluster\_container\_network\_type](#input\_cluster\_container\_network\_type) | Container network type: vpc-router, overlay\_l2 or eni for VirtualMachine Clusters; underlay\_ipvlan for BareMetal Clusters | `string` | `""` | no |
 | <a name="input_cluster_delete_all_network"></a> [cluster\_delete\_all\_network](#input\_cluster\_delete\_all\_network) | Specifies whether to delete all associated network resources when deleting the CCE cluster. | `bool` | `null` | no |
