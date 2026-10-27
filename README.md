@@ -249,7 +249,7 @@ No modules.
 | <a name="input_node_storage_remainder_path"></a> [node\_storage\_remainder\_path](#input\_node\_storage\_remainder\_path) | If the runtime & kubernetes sizes do not add up to 100(%), otc wants to know where/how to mount the remaining space. Note that there are forbidden paths, see otc-documentation for which paths are forbidden. | `string` | `null` | no |
 | <a name="input_node_storage_runtime_size"></a> [node\_storage\_runtime\_size](#input\_node\_storage\_runtime\_size) | How much of the data disk (in percent) is reserved for the node runtime storage (i.e. docker images). OTC default is 90 | `number` | `null` | no |
 | <a name="input_node_storage_size"></a> [node\_storage\_size](#input\_node\_storage\_size) | Size of the node system disk in GB | `number` | `100` | no |
-| <a name="input_node_storage_type"></a> [node\_storage\_type](#input\_node\_storage\_type) | Type of node storage SATA, SAS or SSD | `string` | `"SATA"` | no |
+| <a name="input_node_storage_type"></a> [node\_storage\_type](#input\_node\_storage\_type) | Type of node storage: SAS, SSD, GPSSD, GPSSD2 or ESSD | `string` | `"GPSSD"` | no |
 | <a name="input_node_taints"></a> [node\_taints](#input\_node\_taints) | Node taints for the node pool | <pre>list(object({<br/>    effect = string<br/>    key    = string<br/>    value  = string<br/>  }))</pre> | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Common tag set for CCE resources | `map(any)` | `{}` | no |
 
