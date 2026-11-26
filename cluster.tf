@@ -85,5 +85,10 @@ resource "opentelekomcloud_cce_cluster_v3" "cluster" {
     create = "60m"
     delete = "60m"
   }
+
+  lifecycle {
+    ignore_changes = [multi_az]
+  }
+
   depends_on = [errorcheck_is_valid.cluster_container_network_type]
 }
