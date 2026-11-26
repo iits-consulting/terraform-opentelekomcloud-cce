@@ -278,8 +278,8 @@ variable "node_container_runtime" {
 
 variable "node_storage_type" {
   type        = string
-  description = "Type of node storage SATA, SAS or SSD"
-  default     = "SATA"
+  description = "Type of node storage: SAS, SSD, GPSSD, GPSSD2 or ESSD"
+  default     = "GPSSD"
 }
 
 variable "node_storage_size" {
